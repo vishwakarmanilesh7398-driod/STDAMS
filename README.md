@@ -37,6 +37,8 @@ STDAMS is an AI-driven autonomous monitoring system for real-time satellite thre
    ```
    python app.py
    ```
+   python simulator.py
+   
 3. **Open your browser:**
    - Go to `http://localhost:5000` to view the live dashboard.
 
