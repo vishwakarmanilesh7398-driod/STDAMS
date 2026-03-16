@@ -23,9 +23,10 @@
                 <div id="status-indicator" class="status-normal">NORMAL</div>
                 <div id="anomaly-score">Score: --</div>
             </div>
-            <div class="glass-card" id="alert-card">
-                <h2>Alerts</h2>
-                <div id="alert-message">All systems normal.</div>
+           <div class="glass-card" id="alert-card">
+              <h2>Alerts</h2>
+              <ul id="alert-list" style="list-style: none; padding: 0; max-height: 150px; overflow-y: auto;">
+                  </ul>
             </div>
         </div>
         <div class="glass-card chart-card">
@@ -78,14 +79,40 @@
             });
         }
         function updateAlert() {
-            fetch('/api/alerts').then(r=>r.json()).then(data=>{
-                let msg = data.message || 'All systems normal.';
-                let level = data.level || 'NORMAL';
-                let alertCard = document.getElementById('alert-card');
-                document.getElementById('alert-message').textContent = msg;
-                alertCard.className = 'glass-card ' + (level === 'CRITICAL' ? 'card-critical' : (level === 'WARNING' ? 'card-warning' : 'card-normal'));
-            });
+           fetch('/api/alerts').then(r=>r.json()).then(data=>{
+               let msg = data.message || 'All systems normal.';
+               let level = data.level || 'NORMAL';
+               let alertList = document.getElementById('alert-list'); // Sahi ID yahan hai
+               let alertCard = document.getElementById('alert-card');
+
+        // Card ka color change karein
+        alertCard.className = 'glass-card ' + (level === 'CRITICAL' ? 'card-critical' : (level === 'WARNING' ? 'card-warning' : 'card-normal'));
+
+        // AGAR NAYA ALERT HAI TO LIST MEIN DAALEIN
+        if (level !== 'NORMAL' && msg !== 'All systems normal.') {
+            let li = document.createElement('li');
+            li.style.padding = "8px";
+            li.style.marginBottom = "5px";
+            li.style.borderRadius = "4px";
+            li.style.background = "rgba(255, 255, 255, 0.05)";
+            li.style.fontSize = "0.9rem";
+            li.style.borderLeft = (level === 'CRITICAL' ? "4px solid #ff0059" : "4px solid #ffe600");
+            
+            li.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${msg}`;
+            
+            // Naya alert sabse upar add karein
+            alertList.prepend(li);
+
+            // Sirf top 5 alerts dikhayein
+            if (alertList.children.length > 5) {
+                alertList.removeChild(alertList.lastChild);
+            }
+        } else if (alertList.children.length === 0) {
+            alertList.innerHTML = '<li style="opacity:0.6;">✅ All systems operational</li>';
         }
+    });
+}
+
         function refreshAll() {
             updateTelemetry();
             updateAnomaly();

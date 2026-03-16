@@ -2,47 +2,43 @@ import time
 import random
 import csv
 import os
+import math # Wave ke liye zaroori hai
 from datetime import datetime
 
 DATA_FILE = 'data/satellite.csv'
 
-# Normal values
-ALTITUDE = 420.0
-VELOCITY = 7.6
-SIGNAL = 98.0
-PROXIMITY = 100.0 # New field for Collision Detection
+# Base values
+ALTITUDE_BASE = 400.0
+VELOCITY_BASE = 7.8
+SIGNAL_BASE = 90.0
+counter = 0 # Time constant for waves
 
 def generate_telemetry():
-    global ALTITUDE, VELOCITY, SIGNAL, PROXIMITY
-    
-    # 1. Normal Random Drift
-    ALTITUDE += random.uniform(-2.0, 2.0)
-    VELOCITY += random.uniform(-0.02, 0.02)
-    SIGNAL += random.uniform(-0.3, 0.3)
-    PROXIMITY += random.uniform(-2.0, 2.0)
+    global counter
+    counter += 0.2 # Isse wave ki frequency control hogi
 
-    # 2. Inject Anomaly (20% chance for more action)
-    if random.random() < 0.20:
-        event = random.choice(['drop', 'jam', 'close'])
+    # 1. Frequency/Wave Logic (Sine Wave)
+    # Altitude 400 ke upar-neeche wave banayega
+    altitude = ALTITUDE_BASE + (math.sin(counter) * 15) 
+    # Velocity thoda alag frequency par chalega
+    velocity = VELOCITY_BASE + (math.cos(counter * 0.5) * 0.2)
+    # Signal strength random rahegi
+    signal = SIGNAL_BASE + random.uniform(-2, 2)
+
+    # 2. Inject Anomaly (Wahi purana logic)
+    if random.random() < 0.15:
+        event = random.choice(['drop', 'jam'])
         if event == 'drop':
-            ALTITUDE -= random.uniform(5, 10) # Orbital decay test
+            altitude -= 30 # Sudden drop in wave
         elif event == 'jam':
-            SIGNAL -= random.uniform(15, 30) # Cyber attack test
-        elif event == 'close':
-            PROXIMITY = random.uniform(5, 18) # Collision test
-
-    # 3. Clamping (Scale ke andar rakhein)
-    ALTITUDE = max(345, min(ALTITUDE, 455)) # Dashboard scale: 340-460
-    VELOCITY = max(7.1, min(VELOCITY, 8.4)) 
-    SIGNAL = max(10, min(SIGNAL, 100))
-    PROXIMITY = max(5, min(PROXIMITY, 150))
+            signal -= 40
 
     return {
         'timestamp': datetime.now().strftime("%Y-%m-%dT%H:%M:%S") + 'Z',
-        'altitude': round(ALTITUDE, 2),
-        'velocity': round(VELOCITY, 2),
-        'signal_strength': round(SIGNAL, 2),
-        'proximity_km': round(PROXIMITY, 2)
+        'altitude': round(altitude, 2),
+        'velocity': round(velocity, 2),
+        'signal_strength': round(signal, 2),
+        'proximity_km': round(random.uniform(50, 100), 2)
     }
 
 def write_telemetry(row):
